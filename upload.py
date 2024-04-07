@@ -11,10 +11,9 @@ filePath = sys.argv[1] # '/workspaces/131588624/pythonProject/'
 
 #上传至onedirve的路径
 remotePath = sys.argv[2] # 'OneDrive/Documents/pythonProject/'
-one.upload_files(filePath, remotePath)
+flag = one.upload_files(filePath, remotePath)
 
-# # 本地文件路径
-# filePath = '/workspaces/131588624/pythonProject/nginx'
-# # 上传至onedirve的路径
-# remotePath = '/test/nginx'
-# one.upload_folder(filePath, remotePath)
+if flag:
+    sys.exit(0) # 上传成功
+else:
+    sys.exit(1)# 上传失败

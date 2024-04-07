@@ -7,8 +7,17 @@ import requests
 import json
 import time
 from tqdm import tqdm
-
+import sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from config import settings
+
+# 获取当前脚本所在目录
+script_dir = os.path.dirname(os.path.realpath(__file__))
+
+# 构建配置文件的完整路径
+token_file = os.path.join(script_dir, 'token.json')
+
+
 class onedrive:
 
     def __init__(self,client_id,client_secret):
@@ -65,16 +74,18 @@ class onedrive:
             'refresh_token': resp['refresh_token'],
             'expires_on': int(resp['expires_on'])
         }
-        with open('token.json', 'w') as f:
+        with open(token_file, 'w') as f:
             f.write(json.dumps(token))
         return token
 
     def read_token(self, only_read=False):
-        if os.path.exists('token.json'):
-            with open('token.json', 'r') as f:
+        if os.path.exists(token_file):
+            with open(token_file, 'r') as f:
                 token = json.loads(f.read())
         else:
             self.get_code()
+            print('请在浏览器中输入以下链接，并登录OneDrive账号，然后复制地址栏中的URL：')
+            print(f'https://login.microsoftonline.com/common/oauth2/authorize?response_type=code&client_id={self.client_id}&redirect_uri={self.redirect_uri}')
             token = self.get_token(input('请输入Url：'))
         if only_read:
             return token
@@ -108,57 +119,52 @@ class onedrive:
         else:
             return ""
 
-    def upload_file(self, path, data):
-        size = len(data)
+    def upload_file(self, path, file_path):
+        size = os.path.getsize(file_path)
         if size > 4000000:
-            return self.upload_big_file(path, data)
+            return self.upload_big_file(path, file_path)
         else:
-            r = requests.put(self.get_path(path, 'content'), headers=self.header, data=data)
-            if 'error' in r:
-                return f"{path}上传失败"
-            return f"{path}上传成功"
+            with open(file_path, 'rb') as f:
+                data = f.read()
+                r = requests.put(self.get_path(path, 'content'), headers=self.header, data=data)
+                if 'error' in r:
+                    return f"{path}上传失败"
+                return f"{path}上传成功"
 
-    def upload_big_file(self, path, data):
+
+
+    def upload_big_file(self, path, file_path):
         url = self.upload_url(path)
         if url == "":
             return "上传取消"
-        size = len(data)
-        chunk_size = 4194304*2 # 4MB*2
-        file_name = path.split('/')[len(path.split('/')) - 1]
-        pbar = tqdm(total=size, leave=False, unit='B', unit_scale=True, desc=file_name)
-        for i in range(0, size, chunk_size):
-            chunk_data = data[i:i + chunk_size]
-            pbar.update(len(chunk_data))
-            r = requests.put(url, headers={
-                'Content-Length': str(len(chunk_data)),
-                'Content-Range': 'bytes {}-{}/{}'.format(i, i + len(chunk_data) - 1, size)
-            }, data=chunk_data)
-            if r.status_code not in [200, 201, 202]:
-                print(f"{path}上传出错")
-                break
 
-    # 文件夹上传
-    def upload_folder(self, localPath,remotePath):
-        # 遍历本地文件夹
-        for root, dirs, files in os.walk(localPath):
-            # 遍历文件
-            for file in files:
-                file_absolute_path = os.path.abspath(os.path.join(root, file))
-                file_relative_path = os.path.relpath(os.path.join(root, file), localPath)
-                remoteFilePath = os.path.join(remotePath, file_relative_path)
-                # print(os.path.join(root, file))
-                # print(remoteFilePath)
-                with open(file_absolute_path, 'rb') as f:
-                    # 小文件会打印“上传成功”，大文件会显示上传进度条
-                    print(self.upload_file(remoteFilePath, f.read()))
+        chunk_size = 8 * 1024 * 1024  # 8MB
+        file_name = os.path.basename(file_path)
+        file_size = os.path.getsize(file_path)
+
+        with open(file_path, 'rb') as file:
+            with tqdm(total=file_size,unit='B', unit_scale=True, unit_divisor=1024,desc=file_name) as pbar:
+                for i in range(0, file_size, chunk_size):
+                    chunk_data = file.read(chunk_size)
+                    if not chunk_data:
+                        break
+                    r = requests.put(url, headers={
+                        'Content-Length': str(len(chunk_data)),
+                        'Content-Range': 'bytes {}-{}/{}'.format(i, i + len(chunk_data) - 1, file_size)
+                    }, data=chunk_data)
+                    if r.status_code not in [200, 201, 202]:
+                        print(f"{path}上传出错")
+                        break
+                    pbar.update(len(chunk_data))
+
+
+
 
     # 聚合文件上传方法
     def upload_files(self, localPaths, remotePath):
         # 判断文件时文件夹还是文件
         if os.path.isfile(localPaths):
-            with open(localPaths, 'rb') as f:
-                # 小文件会打印“上传成功”，大文件会显示上传进度条
-                print(self.upload_file(remotePath, f.read()))
+            print(self.upload_file(remotePath, localPaths))
         else:
             for root, dirs, files in os.walk(localPaths):
                 # 遍历文件
@@ -168,10 +174,9 @@ class onedrive:
                     remoteFilePath = os.path.join(remotePath, file_relative_path)
                     # print(os.path.join(root, file))
                     print(f'remoteFilePath:{remoteFilePath}')
-                    with open(file_absolute_path, 'rb') as f:
-                        # 小文件会打印“上传成功”，大文件会显示上传进度条
-                        print(self.upload_file(remoteFilePath, f.read()))
+                    print(self.upload_file(remoteFilePath, file_absolute_path))
         print("上传完成")
+        return True
 
 if __name__ == '__main__':
     one = onedrive(client_id=settings.client_id, client_secret=settings.client_secret)
