@@ -138,9 +138,19 @@ class onedrive:
         if url == "":
             return "上传取消"
 
+        # 默认上传块大小为8MB
         chunk_size = 8 * 1024 * 1024  # 8MB
         file_name = os.path.basename(file_path)
         file_size = os.path.getsize(file_path)
+        # 根据文件大小自动调整块大小，最大100MB
+        if file_size > 100 * 1024 * 1024:
+            chunk_size = 100 * 1024 * 1024  # 100MB
+        elif file_size > 50 * 1024 * 1024:
+            chunk_size = 50 * 1024 * 1024  # 50MB
+        elif file_size > 20 * 1024 * 1024:
+            chunk_size = 20 * 1024 * 1024  # 20MB
+        elif file_size > 10 * 1024 * 1024:
+            chunk_size = 10 * 1024 * 1024  # 10MB
 
         with open(file_path, 'rb') as file:
             with tqdm(total=file_size,unit='B', unit_scale=True, unit_divisor=1024,desc=file_name) as pbar:
