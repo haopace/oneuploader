@@ -7,22 +7,16 @@ import requests
 import json
 import time
 from tqdm import tqdm
-import sys
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from config import settings
 
-# 获取当前脚本所在目录
-script_dir = os.path.dirname(os.path.realpath(__file__))
 
-# 构建配置文件的完整路径
-token_file = os.path.join(script_dir, 'token.json')
 
 
 class onedrive:
 
-    def __init__(self,client_id,client_secret):
+    def __init__(self,client_id,client_secret,token_file):
         self.client_id = client_id
         self.client_secret = client_secret
+        self.token_file = token_file
         self.redirect_uri = 'http://localhost:9988'
         self.oauth2_uri = 'https://login.microsoftonline.com/common/oauth2/token'
         self.resource_uri = 'https://graph.microsoft.com'
@@ -50,7 +44,7 @@ class onedrive:
             'resource': self.resource_uri
         }
         resp = requests.post(self.oauth2_uri, headers=self.header, data=data).json()
-        return self.save_token(resp)
+        return self.save_token(resp,self.token_file)
 
     def refresh_token(self):
         token = self.read_token(only_read=True)
@@ -63,10 +57,10 @@ class onedrive:
             'resource': 'https://graph.microsoft.com'
         }
         resp = requests.post(self.oauth2_uri, headers=self.header, data=data).json()
-        return self.save_token(resp)
+        return self.save_token(resp,self.token_file)
 
     @staticmethod
-    def save_token(resp):
+    def save_token(resp,token_file):
         if 'error' in resp:
             return False
         token = {
@@ -79,8 +73,8 @@ class onedrive:
         return token
 
     def read_token(self, only_read=False):
-        if os.path.exists(token_file):
-            with open(token_file, 'r') as f:
+        if os.path.exists(self.token_file):
+            with open(self.token_file, 'r') as f:
                 token = json.loads(f.read())
         else:
             self.get_code()
@@ -189,11 +183,19 @@ class onedrive:
         return True
 
 if __name__ == '__main__':
-    one = onedrive(client_id=settings.client_id, client_secret=settings.client_secret)
+    config_file  = 'D:\Projects\PyProject\oneuploader\config\config.json'
+    with open(config_file, 'r') as f:
+        config = json.loads(f.read())
+    client_id = config['client_id']  # 应用ID
+    client_secret = config['client_secret']  # 应用密码
+    token_file = r'D:\Projects\PyProject\oneuploader\token.json'  # token文件路径
+    # 获取当前脚本相对路径
+
+    one = onedrive(client_id, client_secret, token_file)
     # 本地文件路径
     filePath = 'C:\\Users\\lizhi\\Downloads\\warp-yxip-win'
     # 上传至onedirve的路径
-    remotePath = '/test/warp-yxip-win'
+    remotePath = '/test/20240501/warp-yxip-win'
     one.upload_files(filePath, remotePath)
     # for root, dirs, files in os.walk(filePath):
     #     for file in files:

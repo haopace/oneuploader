@@ -1,4 +1,7 @@
-config/*
+config/config.json
+config/__pycache__/*
 __pycache__/*
-logs/*
+logs/*.txt
 token.json
+build/*
+ODUploader.py
