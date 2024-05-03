@@ -4,4 +4,3 @@ __pycache__/*
 logs/*.txt
 token.json
 build/*
-ODUploader.py
