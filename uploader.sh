@@ -45,7 +45,7 @@ function LoadFile(){
   cd ${Uploader}
   # 输出当前目录地址
   echo "Current directory: $(pwd)" >> $logFilePath;
-  sudo python OdUploader.py "${Config}" "${FileLoad}" "${RemoteDIR}"; 
+  sudo python ODUploader.py "${Config}" "${FileLoad}" "${RemoteDIR}"; 
 
   if [[ $? == '0' ]]; then
     echo "$(date +%Y-%m-%d\ %H:%M:%S) $FileNum $File uploading end...Success" >> $logFilePath;
