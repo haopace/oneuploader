@@ -11,8 +11,8 @@ token_file = sys.argv[1] # 'token.json' # 保存token的文件路径
 
 print(f'token_file: {token_file}')
 
-client_id = '5c9f6a5c-8928-4cc5-b221-ee822ff26f8c'  # 应用ID
-client_secret = '7qN8Q~KYSP5VhjKDXWDoqeGWGxtrdbSAl2PeXaN5'  # 应用密码
+client_id = ''  # 应用ID
+client_secret = ''  # 应用密码
 # 实例化onedrive对象
 one = onedrive(client_id=client_id, client_secret=client_secret, token_file=token_file)
 # 获取shell脚本里的变量
