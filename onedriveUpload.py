@@ -6,6 +6,7 @@ from urllib.parse import urlparse
 import requests
 import json
 import time
+import re
 from tqdm import tqdm
 
 
@@ -112,8 +113,19 @@ class onedrive:
             return r.json()['uploadUrl']
         else:
             return ""
+    def clean_file_name(self,file_name):
+        # 使用正则表达式去除特殊字符和空格
+        cleaned_file_name = re.sub(r'[^\w\s.-]', '', file_name)
+        # 去除所有空格，包括中文空格，用单个空格替换
+        cleaned_file_name = re.sub(r'[\s\u3000]+', ' ', cleaned_file_name)
+        # 去除开头和结尾的空格
+        cleaned_file_name = cleaned_file_name.strip()
+
+        return cleaned_file_name
 
     def upload_file(self, path, file_path):
+        # 上传的文件中不能有特殊字符，处理下
+        path = self.clean_file_name(path)
         size = os.path.getsize(file_path)
         if size > 4000000:
             return self.upload_big_file(path, file_path)
@@ -183,20 +195,14 @@ class onedrive:
         return True
 
 if __name__ == '__main__':
-    config_file  = 'D:\Projects\PyProject\oneuploader\config\config.json'
-    with open(config_file, 'r') as f:
-        config = json.loads(f.read())
-    client_id = config['client_id']  # 应用ID
-    client_secret = config['client_secret']  # 应用密码
-    token_file = r'D:\Projects\PyProject\oneuploader\token.json'  # token文件路径
-    # 获取当前脚本相对路径
-
-    one = onedrive(client_id, client_secret, token_file)
+    one = onedrive(client_id='5c9f6a5c-8928-4cc5-b221-ee822ff26f8c', client_secret='7qN8Q~KYSP5VhjKDXWDoqeGWGxtrdbSAl2PeXaN5',token_file='token.json')
     # 本地文件路径
-    filePath = 'C:\\Users\\lizhi\\Downloads\\warp-yxip-win'
+    filePath = '/workspaces/131588624/tgdonloads/1652151651/2024_05/video/164 - #抄底 商场抄底美女..mp4'
     # 上传至onedirve的路径
-    remotePath = '/test/20240501/warp-yxip-win'
-    one.upload_files(filePath, remotePath)
+    remotePath = '/test/tgdonloads/1652151651/2024_05/video/164 - #抄底 商场抄底美女..mp4'
+    # one.upload_files(filePath, remotePath)
+    url = one.upload_url(remotePath)
+    print(url)
     # for root, dirs, files in os.walk(filePath):
     #     for file in files:
     #         file_absolute_path = os.path.abspath(os.path.join(root, file))
