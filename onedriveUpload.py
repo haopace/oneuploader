@@ -114,6 +114,9 @@ class onedrive:
         else:
             return ""
     def clean_file_name(self,file_name):
+        # 获取文件名
+        file_name = os.path.basename(file_name)
+
         # 使用正则表达式去除特殊字符和空格
         cleaned_file_name = re.sub(r'[^\w\s.-]', '', file_name)
         # 去除所有空格，包括中文空格，用单个空格替换
@@ -121,7 +124,7 @@ class onedrive:
         # 去除开头和结尾的空格
         cleaned_file_name = cleaned_file_name.strip()
 
-        return cleaned_file_name
+        return os.path.join(os.path.dirname(file_name), cleaned_file_name)
 
     def upload_file(self, path, file_path):
         # 上传的文件中不能有特殊字符，处理下
@@ -197,9 +200,9 @@ class onedrive:
 if __name__ == '__main__':
     one = onedrive(client_id='5c9f6a5c-8928-4cc5-b221-ee822ff26f8c', client_secret='7qN8Q~KYSP5VhjKDXWDoqeGWGxtrdbSAl2PeXaN5',token_file='token.json')
     # 本地文件路径
-    filePath = '/workspaces/131588624/tgdonloads/1652151651/2024_05/video/164 - #抄底 商场抄底美女..mp4'
+    filePath = '/workspaces/131588624/tgdonloads/1652151651/2024_05/video/164 - #assdas..mp4'
     # 上传至onedirve的路径
-    remotePath = '/test/tgdonloads/1652151651/2024_05/video/164 - #抄底 商场抄底美女..mp4'
+    remotePath = '/test/tgdonloads/1652151651/2024_05/video/164 - fdfsd..mp4'
     # one.upload_files(filePath, remotePath)
     url = one.upload_url(remotePath)
     print(url)
