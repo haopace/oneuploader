@@ -113,18 +113,18 @@ class onedrive:
             return r.json()['uploadUrl']
         else:
             return ""
-    def clean_file_name(self,file_name):
+    def clean_file_name(self,file_path):
         # 获取文件名
-        file_name = os.path.basename(file_name)
+        file_name = os.path.basename(file_path)
 
         # 使用正则表达式去除特殊字符和空格
         cleaned_file_name = re.sub(r'[^\w\s.-]', '', file_name)
-        # 去除所有空格，包括中文空格，用单个空格替换
-        cleaned_file_name = re.sub(r'[\s\u3000]+', ' ', cleaned_file_name)
+        # 去除所有空格，包括中文空格，用-空格替换
+        cleaned_file_name = re.sub(r'[\s\u3000]+', '-', cleaned_file_name)
         # 去除开头和结尾的空格
         cleaned_file_name = cleaned_file_name.strip()
 
-        return os.path.join(os.path.dirname(file_name), cleaned_file_name)
+        return os.path.join(os.path.dirname(file_path), cleaned_file_name)
 
     def upload_file(self, path, file_path):
         # 上传的文件中不能有特殊字符，处理下
