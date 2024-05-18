@@ -9,8 +9,6 @@ import time
 import schedule
 import shutil
 from functools import partial
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
 
 
 token_file = "./token.json"
@@ -32,14 +30,16 @@ uploaded_files = []
 
 # 定义上传函数
 def upload_files(local_folder_path, remote_folder_path):
-    files = os.listdir(local_folder_path)  # 获取文件夹中所有文件的列表
-    for file in files:
-        if file not in uploaded_files:  # 只处理未上传的文件
-            file_path = os.path.join(local_folder_path, file)
+    print(f'Start uploading files from {local_folder_path} to {remote_folder_path}')
+    # 遍历本地文件夹
+    for root, dirs, files in os.walk(local_folder_path):
+        # 遍历文件
+        for file in files:
+            file_path = os.path.join(root, file)
             # 在这里添加调用上传文件的逻辑，以及将已上传文件添加到uploaded_files列表的代码
             print(f'Uploading file: {file_path}')
-             # 上传文件
-            remoteFilePath = os.path.join(remote_folder_path,os.path.basename(file))
+            # 上传文件
+            remoteFilePath = file_path.replace(local_folder_path, remote_folder_path)
             flag = one.upload_files(file_path, remoteFilePath)
             if flag:
                 uploaded_files.append(file)  # 将已上传的文件添加到列表中
@@ -56,12 +56,11 @@ partial_upload_files = partial(upload_files, tgdownloads_path, remotePath)
 
 
 # 定义定时任务，每5分钟执行一次上传函数
-schedule.every(5).minutes.do(partial_upload_files)
+schedule.every(1).minutes.do(partial_upload_files)
 
 # 主循环
 while True:
     schedule.run_pending()  # 运行定时任务
-    time.sleep(1)
+    time.sleep(10)
 
 
- 
