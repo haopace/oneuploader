@@ -200,12 +200,12 @@ class onedrive:
 if __name__ == '__main__':
     one = onedrive(client_id='5c9f6a5c-8928-4cc5-b221-ee822ff26f8c', client_secret='7qN8Q~KYSP5VhjKDXWDoqeGWGxtrdbSAl2PeXaN5',token_file='token.json')
     # 本地文件路径
-    filePath = '/workspaces/131588624/tgdonloads/1652151651/2024_05/video/164 - #assdas..mp4'
+    filePath = 'D:/Download/alist-windows-4.0-amd64.zip'
     # 上传至onedirve的路径
-    remotePath = '/test/tgdonloads/1652151651/2024_05/video/164 - fdfsd..mp4'
-    # one.upload_files(filePath, remotePath)
-    url = one.upload_url(remotePath)
-    print(url)
+    remotePath = '/test/20241122/alist-windows-4.0-amd64.zip'
+    one.upload_files(filePath, remotePath)
+    # url = one.upload_url(remotePath)
+    # print(url)
     # for root, dirs, files in os.walk(filePath):
     #     for file in files:
     #         file_absolute_path = os.path.abspath(os.path.join(root, file))
